@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SentinelSite — Admin Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F1F3F6; --card:#FFFFFF; --border:#E4E7EC;
+    --navy:#161B26; --navy-2:#20263A;
+    --orange:#FF6A1A; --orange-soft:#FFF1E8;
+    --yellow:#FFC107; --red:#E5484D; --red-soft:#FDECEC;
+    --green:#1FAE6A; --green-soft:#E7F8F0;
+    --blue:#3B82F6; --blue-soft:#EAF2FF;
+    --text:#161B26; --text-2:#5B6272; --text-3:#9AA1AF;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; display:flex; min-height:100vh; }
+  .mono{ font-family:'JetBrains Mono',monospace; }
+
+  /* sidebar */
+  .sidebar{ width:220px; background:var(--navy); color:#fff; flex-shrink:0; display:flex; flex-direction:column; padding:22px 16px; }
+  .brand{ display:flex; align-items:center; gap:10px; margin-bottom:30px; padding:0 6px; }
+  .brand-mark{ width:32px; height:32px; border-radius:8px; background:var(--orange); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; }
+  .brand-name{ font-weight:700; font-size:15px; letter-spacing:-0.01em; }
+  .brand-tag{ font-size:9.5px; font-weight:700; background:var(--orange); color:#fff; padding:2px 6px; border-radius:4px; margin-left:2px; }
+  .nav-group-label{ font-size:10.5px; color:#6B7280; text-transform:uppercase; letter-spacing:0.06em; margin:14px 8px 8px; }
+  .nav-link{ display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:8px; color:#B7BCC7; text-decoration:none; font-size:13.5px; font-weight:500; margin-bottom:2px; cursor:pointer; border:none; background:none; width:100%; text-align:left; font-family:'Inter',sans-serif; }
+  .nav-link svg{ width:16px; height:16px; flex-shrink:0; }
+  .nav-link.active{ background:var(--navy-2); color:#fff; }
+  .nav-link:hover{ color:#fff; }
+  .sidebar-footer{ margin-top:auto; padding:12px 10px; border-top:1px solid #2A3145; }
+  .user-row{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .user-avatar{ width:32px; height:32px; border-radius:50%; background:var(--orange); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px; color:#fff; flex-shrink:0; }
+  .user-name{ font-size:12.5px; font-weight:600; color:#fff; }
+  .user-role{ font-size:10.5px; color:#8891A0; }
+  .logout-btn{ display:block; text-align:center; font-size:12px; color:#B7BCC7; text-decoration:none; border:1px solid #2A3145; border-radius:7px; padding:7px; margin-top:6px; }
+  .logout-btn:hover{ border-color:var(--orange); color:var(--orange); }
+
+  /* main */
+  .main{ flex:1; min-width:0; }
+  .topbar{ display:flex; align-items:center; justify-content:space-between; padding:20px 32px; border-bottom:1px solid var(--border); background:var(--card); }
+  .topbar h1{ font-size:19px; font-weight:700; letter-spacing:-0.01em; }
+  .topbar .subtitle{ font-size:12.5px; color:var(--text-2); margin-top:2px; }
+  .clock-chip{ font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--text-2); background:var(--bg); border:1px solid var(--border); border-radius:20px; padding:6px 14px; }
+  .content{ padding:26px 32px 60px; }
+  .tab{ display:none; }
+  .tab.active{ display:block; }
+
+  .card{ background:var(--card); border:1px solid var(--border); border-radius:14px; padding:20px; box-shadow:0 1px 2px rgba(16,24,40,0.04); margin-bottom:16px; }
+  .card-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; gap:12px; flex-wrap:wrap; }
+  .card-head h2{ font-size:15px; font-weight:700; }
+  .card-head .sub{ font-size:11.5px; color:var(--text-3); }
+  .toolbar{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+
+  /* KPI grid */
+  .kpi-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:14px; margin-bottom:16px; }
+  .kpi .icon-box{ width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; margin-bottom:12px; font-size:15px; }
+  .kpi .value{ font-size:26px; font-weight:800; letter-spacing:-0.01em; }
+  .kpi .label{ font-size:12.5px; color:var(--text-2); margin-top:2px; }
+  .kpi .note{ font-size:11px; color:var(--text-3); margin-top:8px; }
+
+  .two-col{ display:grid; grid-template-columns:1.3fr 1fr; gap:16px; }
+  .three-col{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+  @media (max-width:1100px){ .two-col,.three-col{ grid-template-columns:1fr; } }
+
+  /* bar chart */
+  .bar-chart{ display:flex; align-items:flex-end; gap:10px; height:150px; }
+  .bar-col{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:5px; height:100%; }
+  .bar{ width:60%; min-height:4px; border-radius:6px 6px 0 0; background:var(--orange); }
+  .bar-val{ font-size:10.5px; font-weight:600; color:var(--text-2); }
+  .bar-day{ font-size:10px; color:var(--text-3); font-weight:600; }
+
+  /* meters */
+  .meter-row{ margin-bottom:12px; }
+  .meter-top{ display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:5px; }
+  .meter{ height:8px; border-radius:8px; background:var(--bg); overflow:hidden; }
+  .meter > div{ height:100%; border-radius:8px; }
+  .sys-row{ display:flex; justify-content:space-between; font-size:12.5px; padding:9px 0; border-bottom:1px solid var(--border); }
+  .sys-row:last-child{ border-bottom:none; }
+  .sys-row span:first-child{ color:var(--text-2); }
+
+  /* tables */
+  .table-wrap{ overflow-x:auto; }
+  table{ width:100%; border-collapse:collapse; }
+  th{ text-align:left; font-size:10.5px; color:var(--text-3); font-weight:600; text-transform:uppercase; padding:8px; border-bottom:1px solid var(--border); white-space:nowrap; }
+  td{ font-size:12.5px; padding:10px 8px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  tr:hover td{ background:#FAFBFC; }
+  .empty{ font-size:12.5px; color:var(--text-3); padding:18px 8px; text-align:center; }
+
+  .badge{ display:inline-block; font-size:11px; font-weight:700; padding:3px 9px; border-radius:20px; }
+  .badge.admin{ background:var(--orange-soft); color:var(--orange); }
+  .badge.supervisor{ background:var(--blue-soft); color:var(--blue); }
+  .badge.high,.badge.disabled{ background:var(--red-soft); color:var(--red); }
+  .badge.medium{ background:var(--orange-soft); color:var(--orange); }
+  .badge.low{ background:var(--bg); color:var(--text-2); }
+  .badge.active,.badge.photo{ background:var(--green-soft); color:var(--green); }
+  .badge.video{ background:var(--blue-soft); color:var(--blue); }
+  .you{ font-size:10px; font-weight:700; color:var(--text-3); margin-left:6px; }
+
+  /* controls */
+  input[type=text],input[type=password],input[type=number],select{
+    padding:8px 11px; border-radius:8px; border:1px solid var(--border); background:#fff; font-size:13px; font-family:'Inter',sans-serif; color:var(--text);
+  }
+  input:focus,select:focus{ outline:none; border-color:var(--orange); }
+  .btn{ padding:8px 14px; border-radius:8px; border:1px solid var(--border); background:#fff; font-size:12.5px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif; color:var(--text); text-decoration:none; display:inline-block; }
+  .btn:hover{ border-color:var(--orange); color:var(--orange); }
+  .btn.primary{ background:var(--orange); border-color:var(--orange); color:#fff; }
+  .btn.primary:hover{ filter:brightness(1.07); color:#fff; }
+  .btn.danger{ color:var(--red); }
+  .btn.danger:hover{ border-color:var(--red); background:var(--red-soft); color:var(--red); }
+  .btn.sm{ padding:5px 9px; font-size:11.5px; }
+  .actions{ display:flex; gap:6px; flex-wrap:wrap; }
+  .add-user{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; padding:14px; background:var(--bg); border-radius:10px; margin-bottom:16px; }
+
+  .thumb{ width:56px; height:38px; object-fit:cover; border-radius:6px; background:var(--bg); border:1px solid var(--border); display:block; }
+  .thumb-link{ font-size:11.5px; color:var(--blue); text-decoration:none; font-weight:600; }
+
+  /* toast */
+  #toast{ position:fixed; bottom:24px; right:24px; background:var(--navy); color:#fff; padding:11px 18px; border-radius:10px; font-size:13px; font-weight:500; opacity:0; transform:translateY(10px); transition:all .2s; pointer-events:none; z-index:50; max-width:340px; }
+  #toast.show{ opacity:1; transform:none; }
+  #toast.error{ background:var(--red); }
+</style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">SS</div>
+      <div class="brand-name">SentinelSite</div>
+      <span class="brand-tag">ADMIN</span>
+    </div>
+
+    <div class="nav-group-label">Admin</div>
+    <button class="nav-link active" data-tab="overview" onclick="showTab('overview')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+      Overview
+    </button>
+    <button class="nav-link" data-tab="users" onclick="showTab('users')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.3c2.2.7 3.5 2.6 3.5 5.7"/></svg>
+      Users
+    </button>
+    <button class="nav-link" data-tab="violations" onclick="showTab('violations')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l9 16H3z"/><path d="M12 10v4"/><circle cx="12" cy="17" r="0.5" fill="currentColor"/></svg>
+      Violations
+    </button>
+    <button class="nav-link" data-tab="uploads" onclick="showTab('uploads')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+      Uploads
+    </button>
+    <button class="nav-link" data-tab="audit" onclick="showTab('audit')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h6M9 16h6M9 8h3"/></svg>
+      Audit log
+    </button>
+
+    <div class="nav-group-label">Site</div>
+    <a class="nav-link" href="/">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 18l-6-6 6-6"/></svg>
+      Back to dashboard
+    </a>
+
+    <div class="sidebar-footer">
+      <div class="user-row">
+        <div class="user-avatar" id="avatarInitials">--</div>
+        <div>
+          <div class="user-name" id="currentUserLabel">—</div>
+          <div class="user-role">Administrator</div>
+        </div>
+      </div>
+      <a href="/logout" class="logout-btn">Log out</a>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <h1 id="pageTitle">Admin Overview</h1>
+        <div class="subtitle">Manage users, data and system health</div>
+      </div>
+      <div class="clock-chip mono" id="clock">--:--:--</div>
+    </div>
+
+    <div class="content">
+
+      <!-- ============ OVERVIEW ============ -->
+      <div class="tab active" id="tab-overview">
+        <div class="kpi-grid" id="kpiGrid"></div>
+
+        <div class="two-col">
+          <div class="card">
+            <div class="card-head"><h2>Violations — last 7 days</h2><span class="sub">per day</span></div>
+            <div class="bar-chart" id="trendChart"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h2>Severity breakdown</h2><span class="sub">all time</span></div>
+            <div id="severityMeters"></div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="card">
+            <div class="card-head"><h2>Top violation types</h2></div>
+            <div id="topTypes"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h2>System</h2><button class="btn sm" onclick="loadOverview()">Refresh</button></div>
+            <div id="systemInfo"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ USERS ============ -->
+      <div class="tab" id="tab-users">
+        <div class="card">
+          <div class="card-head"><h2>User management</h2><span class="sub" id="usersCount"></span></div>
+
+          <div class="add-user">
+            <input type="text" id="newUsername" placeholder="New username">
+            <input type="password" id="newPassword" placeholder="Password (min 6)">
+            <select id="newRole">
+              <option value="supervisor">Supervisor</option>
+              <option value="admin">Admin</option>
+            </select>
+            <button class="btn primary" onclick="createUser()">+ Add user</button>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>ID</th><th>Username</th><th>Role</th><th>Status</th><th>Created</th><th>Last login</th><th>Actions</th></tr></thead>
+              <tbody id="usersBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ VIOLATIONS ============ -->
+      <div class="tab" id="tab-violations">
+        <div class="card">
+          <div class="card-head">
+            <h2>All violations</h2>
+            <div class="toolbar">
+              <select id="violSeverity" onchange="loadViolations()">
+                <option value="">All severities</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+              </select>
+              <a class="btn" href="/api/admin/export/violations.csv">Export CSV</a>
+              <button class="btn danger" onclick="clearViolations()">Clear all</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>ID</th><th>Type</th><th>Severity</th><th>Source</th><th>Time</th><th></th></tr></thead>
+              <tbody id="violBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ UPLOADS ============ -->
+      <div class="tab" id="tab-uploads">
+        <div class="card">
+          <div class="card-head">
+            <h2>Uploaded files</h2>
+            <div class="toolbar">
+              <span class="sub">Delete uploads older than</span>
+              <input type="number" id="cleanupDays" value="30" min="0" style="width:70px;">
+              <span class="sub">days</span>
+              <button class="btn danger" onclick="cleanupUploads()">Clean up</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>ID</th><th>Preview</th><th>Filename</th><th>Type</th><th>People</th><th>PPE viol.</th><th>Time</th><th></th></tr></thead>
+              <tbody id="uploadsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ============ AUDIT ============ -->
+      <div class="tab" id="tab-audit">
+        <div class="card">
+          <div class="card-head"><h2>Audit log</h2><span class="sub">Logins and every admin action (latest 200)</span></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>ID</th><th>Who</th><th>Action</th><th>Detail</th><th>Time</th></tr></thead>
+              <tbody id="auditBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+<script>
+  /* ---------- helpers ---------- */
+  function esc(v){
+    return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function fmtTime(iso){
+    if(!iso) return '—';
+    const d = new Date(iso);
+    if(isNaN(d)) return esc(iso);
+    return d.toLocaleString('en-GB', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+  }
+  function fmtBytes(n){
+    if(n < 1024) return n + ' B';
+    if(n < 1024*1024) return (n/1024).toFixed(1) + ' KB';
+    if(n < 1024*1024*1024) return (n/1024/1024).toFixed(1) + ' MB';
+    return (n/1024/1024/1024).toFixed(2) + ' GB';
+  }
+  let toastTimer;
+  function toast(msg, isError){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'show' + (isError ? ' error' : '');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.className = '', 3200);
+  }
+  async function api(url, method = 'GET', body){
+    const opts = { method, headers: {} };
+    if(body !== undefined){ opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
+    const res = await fetch(url, opts);
+    if(res.redirected && res.url.includes('/login')){ window.location = '/login'; throw new Error('session expired'); }
+    let data = {};
+    try{ data = await res.json(); }catch(e){}
+    if(!res.ok){ throw new Error(data.error || ('Request failed (' + res.status + ')')); }
+    return data;
+  }
+  async function run(fn){
+    try{ await fn(); }catch(e){ toast(e.message, true); }
+  }
+
+  function tick(){ document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-GB'); }
+  tick(); setInterval(tick, 1000);
+
+  /* ---------- tabs ---------- */
+  const TITLES = { overview:'Admin Overview', users:'User Management', violations:'Violations', uploads:'Uploads', audit:'Audit Log' };
+  const LOADERS = { overview:loadOverview, users:loadUsers, violations:loadViolations, uploads:loadUploads, audit:loadAudit };
+  function showTab(name){
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.id === 'tab-' + name));
+    document.querySelectorAll('.nav-link[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+    document.getElementById('pageTitle').textContent = TITLES[name];
+    history.replaceState(null, '', '#' + name);
+    run(LOADERS[name]);
+  }
+
+
+  /* ---------- overview ---------- */
+  async function loadOverview(){
+    const d = await api('/api/admin/overview');
+    const s = d.stats;
+
+    const kpis = [
+      { icon:'👥', bg:'var(--blue-soft)',   label:'Users',            value:s.users_total,      note:`${s.users_active} active · ${s.admins} admin` },
+      { icon:'📤', bg:'var(--green-soft)',  label:'Total uploads',    value:s.uploads_total,    note:`${s.photo_uploads} photos · ${s.video_uploads} videos` },
+      { icon:'⚠️', bg:'var(--orange-soft)', label:'Total violations', value:s.violations_total, note:`${s.violations_today} logged today` },
+      { icon:'🚨', bg:'var(--red-soft)',    label:'Falls detected',   value:s.falls_total,      note:'all time' },
+    ];
+    document.getElementById('kpiGrid').innerHTML = kpis.map(k => `
+      <div class="card kpi" style="margin-bottom:0;">
+        <div class="icon-box" style="background:${k.bg};">${k.icon}</div>
+        <div class="value">${k.value}</div>
+        <div class="label">${k.label}</div>
+        <div class="note">${k.note}</div>
+      </div>`).join('');
+
+    const max = Math.max(1, ...d.trend.map(t => t.count));
+    document.getElementById('trendChart').innerHTML = d.trend.map(t => `
+      <div class="bar-col">
+        <div class="bar-val">${t.count}</div>
+        <div class="bar" style="height:${Math.round((t.count / max) * 100)}px;"></div>
+        <div class="bar-day">${t.label}</div>
+      </div>`).join('');
+
+    const totalSev = Math.max(1, d.severity.high + d.severity.medium + d.severity.low);
+    const sevColors = { high:'var(--red)', medium:'var(--orange)', low:'var(--text-3)' };
+    document.getElementById('severityMeters').innerHTML = ['high','medium','low'].map(k => `
+      <div class="meter-row">
+        <div class="meter-top"><span style="text-transform:capitalize;">${k}</span><b>${d.severity[k]}</b></div>
+        <div class="meter"><div style="width:${(d.severity[k] / totalSev) * 100}%; background:${sevColors[k]};"></div></div>
+      </div>`).join('');
+
+    const topMax = Math.max(1, ...d.top_types.map(t => t.count));
+    document.getElementById('topTypes').innerHTML = d.top_types.length
+      ? d.top_types.map(t => `
+        <div class="meter-row">
+          <div class="meter-top"><span>${esc(t.type)}</span><b>${t.count}</b></div>
+          <div class="meter"><div style="width:${(t.count / topMax) * 100}%; background:var(--orange);"></div></div>
+        </div>`).join('')
+      : '<div class="empty">No violations yet.</div>';
+
+    const sy = d.system;
+    document.getElementById('systemInfo').innerHTML = `
+      <div class="sys-row"><span>Database size</span><b>${fmtBytes(sy.db_size_bytes)}</b></div>
+      <div class="sys-row"><span>Uploaded files</span><b>${sy.uploads_files} files · ${fmtBytes(sy.uploads_bytes)}</b></div>
+      <div class="sys-row"><span>Free disk space</span><b>${fmtBytes(sy.disk_free_bytes)}</b></div>
+      <div class="sys-row"><span>Server time</span><b class="mono">${esc(sy.server_time.replace('T',' '))}</b></div>`;
+  }
+
+  /* ---------- users ---------- */
+  async function loadUsers(){
+    const { users, me } = await api('/api/admin/users');
+    document.getElementById('usersCount').textContent = users.length + ' accounts';
+    document.getElementById('usersBody').innerHTML = users.map(u => {
+      const isMe = u.username === me;
+      const isAdmin = u.role === 'admin';
+      const isActive = u.active !== 0;
+      return `<tr>
+        <td class="mono">${u.id}</td>
+        <td><b>${esc(u.username)}</b>${isMe ? '<span class="you">(you)</span>' : ''}</td>
+        <td><span class="badge ${esc(u.role)}">${esc(u.role)}</span></td>
+        <td><span class="badge ${isActive ? 'active' : 'disabled'}">${isActive ? 'Active' : 'Disabled'}</span></td>
+        <td class="mono">${fmtTime(u.created_at)}</td>
+        <td class="mono">${fmtTime(u.last_login)}</td>
+        <td><div class="actions">
+          ${isMe ? '' : `<button class="btn sm" onclick="setRole(${u.id}, '${isAdmin ? 'supervisor' : 'admin'}')">${isAdmin ? 'Make supervisor' : 'Make admin'}</button>`}
+          ${isMe ? '' : `<button class="btn sm" onclick="setActive(${u.id}, ${isActive ? 'false' : 'true'})">${isActive ? 'Disable' : 'Enable'}</button>`}
+          <button class="btn sm" onclick="resetPassword(${u.id}, '${esc(u.username).replace(/'/g, "\\'")}')">Reset password</button>
+          ${isMe ? '' : `<button class="btn sm danger" onclick="deleteUser(${u.id}, '${esc(u.username).replace(/'/g, "\\'")}')">Delete</button>`}
+        </div></td>
+      </tr>`;
+    }).join('');
+  }
+
+  function createUser(){ run(async () => {
+    const username = document.getElementById('newUsername').value.trim();
+    const password = document.getElementById('newPassword').value;
+    const role = document.getElementById('newRole').value;
+    await api('/api/admin/users', 'POST', { username, password, role });
+    document.getElementById('newUsername').value = '';
+    document.getElementById('newPassword').value = '';
+    toast('User "' + username + '" created');
+    await loadUsers();
+  }); }
+
+  function setRole(id, role){ run(async () => {
+    if(!confirm('Change this user to ' + role + '?')) return;
+    await api('/api/admin/users/' + id + '/role', 'POST', { role });
+    toast('Role updated'); await loadUsers();
+  }); }
+
+  function setActive(id, active){ run(async () => {
+    if(!confirm((active ? 'Enable' : 'Disable') + ' this account?')) return;
+    await api('/api/admin/users/' + id + '/active', 'POST', { active });
+    toast(active ? 'Account enabled' : 'Account disabled'); await loadUsers();
+  }); }
+
+  function resetPassword(id, name){ run(async () => {
+    const pw = prompt('New password for "' + name + '" (min 6 characters):');
+    if(pw === null) return;
+    await api('/api/admin/users/' + id + '/reset-password', 'POST', { password: pw });
+    toast('Password reset for ' + name);
+  }); }
+
+  function deleteUser(id, name){ run(async () => {
+    if(!confirm('Permanently delete user "' + name + '"? This cannot be undone.')) return;
+    await api('/api/admin/users/' + id, 'DELETE');
+    toast('User deleted'); await loadUsers();
+  }); }
+
+  /* ---------- violations ---------- */
+  async function loadViolations(){
+    const sev = document.getElementById('violSeverity').value;
+    const rows = await api('/api/admin/violations' + (sev ? '?severity=' + sev : ''));
+    document.getElementById('violBody').innerHTML = rows.length ? rows.map(v => `
+      <tr>
+        <td class="mono">${v.id}</td>
+        <td>${esc(v.type)}</td>
+        <td><span class="badge ${esc(v.severity)}">${esc(v.severity)}</span></td>
+        <td>${esc(v.source)}</td>
+        <td class="mono">${fmtTime(v.timestamp)}</td>
+        <td><button class="btn sm danger" onclick="deleteViolation(${v.id})">Delete</button></td>
+      </tr>`).join('') : '<tr><td colspan="6" class="empty">No violations found.</td></tr>';
+  }
+  function deleteViolation(id){ run(async () => {
+    if(!confirm('Delete violation #' + id + '?')) return;
+    await api('/api/admin/violations/' + id, 'DELETE');
+    toast('Violation deleted'); await loadViolations();
+  }); }
+  function clearViolations(){ run(async () => {
+    if(!confirm('Delete ALL violations? This also resets the risk score and compliance history. This cannot be undone.')) return;
+    const r = await api('/api/admin/violations', 'DELETE');
+    toast(r.removed + ' violations removed'); await loadViolations();
+  }); }
+
+  /* ---------- uploads ---------- */
+  async function loadUploads(){
+    const rows = await api('/api/admin/uploads');
+    document.getElementById('uploadsBody').innerHTML = rows.length ? rows.map(u => {
+      const url = '/admin/files/' + encodeURIComponent(u.filename);
+      const preview = u.upload_type === 'photo'
+        ? `<img class="thumb" src="${url}" alt="" onerror="this.style.visibility='hidden'">`
+        : `<a class="thumb-link" href="${url}" target="_blank">Open video</a>`;
+      return `<tr>
+        <td class="mono">${u.id}</td>
+        <td>${preview}</td>
+        <td>${esc(u.filename)}</td>
+        <td><span class="badge ${esc(u.upload_type)}">${esc(u.upload_type)}</span></td>
+        <td class="mono">${u.upload_type === 'photo' ? (u.total_people ?? 0) : '—'}</td>
+        <td class="mono">${u.upload_type === 'photo' ? (u.ppe_violations ?? 0) : '—'}</td>
+        <td class="mono">${fmtTime(u.timestamp)}</td>
+        <td><button class="btn sm danger" onclick="deleteUpload(${u.id})">Delete</button></td>
+      </tr>`;
+    }).join('') : '<tr><td colspan="8" class="empty">No uploads yet.</td></tr>';
+  }
+  function deleteUpload(id){ run(async () => {
+    if(!confirm('Delete this upload record and its file?')) return;
+    await api('/api/admin/uploads/' + id, 'DELETE');
+    toast('Upload deleted'); await loadUploads();
+  }); }
+  function cleanupUploads(){ run(async () => {
+    const days = parseInt(document.getElementById('cleanupDays').value, 10);
+    if(isNaN(days) || days < 0){ toast('Enter a valid number of days', true); return; }
+    if(!confirm('Delete every upload older than ' + days + ' days (records + files)?')) return;
+    const r = await api('/api/admin/uploads/cleanup', 'POST', { days });
+    toast(r.records_removed + ' records, ' + r.files_removed + ' files removed');
+    await loadUploads();
+  }); }
+
+  /* ---------- audit ---------- */
+  async function loadAudit(){
+    const rows = await api('/api/admin/audit');
+    document.getElementById('auditBody').innerHTML = rows.length ? rows.map(a => `
+      <tr>
+        <td class="mono">${a.id}</td>
+        <td>${esc(a.actor)}</td>
+        <td><span class="badge low">${esc(a.action)}</span></td>
+        <td>${esc(a.detail)}</td>
+        <td class="mono">${fmtTime(a.timestamp)}</td>
+      </tr>`).join('') : '<tr><td colspan="5" class="empty">Nothing logged yet.</td></tr>';
+  }
+
+  /* ---------- init ---------- */
+  (async function init(){
+    try{
+      const me = await api('/api/current-user');
+      document.getElementById('currentUserLabel').textContent = me.username;
+      document.getElementById('avatarInitials').textContent = me.username.slice(0, 2).toUpperCase();
+    }catch(e){}
+    const start = location.hash.replace('#', '');
+    showTab(TITLES[start] ? start : 'overview');
+  })();
+</script>
+</body>
+</html>

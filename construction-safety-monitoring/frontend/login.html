@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SentinelSite — Sign in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#14171C; --panel:#1B2027; --border:#2C333F; --yellow:#F5B700;
+    --text:#EDEFF3; --text-2:#99A2AF; --red:#FF4B4B;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--bg); color:var(--text); font-family:'Inter',sans-serif;
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+  }
+  .hazard-strip{
+    position:fixed; top:0; left:0; width:100%; height:6px;
+    background:repeating-linear-gradient(135deg, var(--yellow) 0 14px, #1a1a1a 14px 28px);
+  }
+  .login-card{
+    width:360px; background:var(--panel); border:1px solid var(--border);
+    border-radius:14px; padding:36px 32px;
+  }
+  .logo{
+    width:44px; height:44px; background:var(--yellow); border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Oswald',sans-serif; font-weight:700; font-size:16px; color:#14171C;
+    margin-bottom:18px;
+  }
+  h1{ font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spacing:0.03em; font-size:20px; margin-bottom:4px; }
+  .sub{ font-size:13px; color:var(--text-2); margin-bottom:26px; }
+  label{ font-size:12px; color:var(--text-2); display:block; margin-bottom:6px; }
+  input{
+    width:100%; padding:10px 12px; margin-bottom:18px; border-radius:8px;
+    border:1px solid var(--border); background:#12151A; color:var(--text); font-size:14px;
+  }
+  input:focus{ outline:none; border-color:var(--yellow); }
+  button{
+    width:100%; padding:11px; border-radius:8px; border:none; cursor:pointer;
+    background:var(--yellow); color:#14171C; font-weight:600; font-size:14px;
+  }
+  button:hover{ filter:brightness(1.05); }
+  .error{
+    display:none; background:rgba(255,75,75,0.12); border:1px solid rgba(255,75,75,0.35);
+    color:var(--red); font-size:12.5px; padding:9px 12px; border-radius:8px; margin-bottom:18px;
+  }
+  .hint{ font-size:11px; color:var(--text-2); margin-top:18px; text-align:center; }
+</style>
+</head>
+<body>
+  <div class="hazard-strip"></div>
+  <div class="login-card">
+    <div class="logo">SS</div>
+    <h1>SentinelSite</h1>
+    <div class="sub">Sign in to view the safety dashboard</div>
+
+    <div class="error" id="errorBanner">Incorrect username or password. Try again.</div>
+
+    <form method="POST" action="/login">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" autocomplete="username" required>
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" autocomplete="current-password" required>
+      <button type="submit">Log in</button>
+    </form>
+
+       
+    <div class="hint">New here? <a href="/register" style="color:var(--yellow); text-decoration:none;">Create an account</a></div>
+  </div>
+
+  <script>
+    if(window.location.search.includes('error=1')){
+      document.getElementById('errorBanner').style.display = 'block';
+    }
+  </script>
+</body>
+</html>

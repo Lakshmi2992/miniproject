@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SentinelSite — Safety Operations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F1F3F6;
+    --card:#FFFFFF;
+    --border:#E4E7EC;
+    --navy:#161B26;
+    --navy-2:#20263A;
+    --orange:#FF6A1A;
+    --orange-soft:#FFF1E8;
+    --yellow:#FFC107;
+    --red:#E5484D;
+    --red-soft:#FDECEC;
+    --green:#1FAE6A;
+    --green-soft:#E7F8F0;
+    --text:#161B26;
+    --text-2:#5B6272;
+    --text-3:#9AA1AF;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; display:flex; min-height:100vh; }
+  .mono{ font-family:'JetBrains Mono',monospace; }
+
+  .sidebar{
+    width:220px; background:var(--navy); color:#fff; flex-shrink:0;
+    display:flex; flex-direction:column; padding:22px 16px;
+  }
+  .brand{ display:flex; align-items:center; gap:10px; margin-bottom:30px; padding:0 6px; }
+  .brand-mark{
+    width:32px; height:32px; border-radius:8px; background:var(--orange);
+    display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px;
+  }
+  .brand-name{ font-weight:700; font-size:15px; letter-spacing:-0.01em; }
+  .nav-group-label{ font-size:10.5px; color:#6B7280; text-transform:uppercase; letter-spacing:0.06em; margin:14px 8px 8px; }
+  .nav-link{
+    display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:8px;
+    color:#B7BCC7; text-decoration:none; font-size:13.5px; font-weight:500; margin-bottom:2px;
+  }
+  .nav-link svg{ width:16px; height:16px; flex-shrink:0; }
+  .nav-link.active{ background:var(--navy-2); color:#fff; }
+  .nav-link:hover{ color:#fff; }
+  .sidebar-footer{ margin-top:auto; padding:12px 10px; border-top:1px solid #2A3145; }
+  .user-row{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .user-avatar{
+    width:32px; height:32px; border-radius:50%; background:var(--orange);
+    display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px; color:#fff; flex-shrink:0;
+  }
+  .user-name{ font-size:12.5px; font-weight:600; color:#fff; }
+  .user-role{ font-size:10.5px; color:#8891A0; }
+  .logout-btn{
+    display:block; text-align:center; font-size:12px; color:#B7BCC7; text-decoration:none;
+    border:1px solid #2A3145; border-radius:7px; padding:7px; margin-top:6px;
+  }
+  .logout-btn:hover{ border-color:var(--orange); color:var(--orange); }
+
+  .main{ flex:1; min-width:0; }
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 32px; border-bottom:1px solid var(--border); background:var(--card);
+  }
+  .topbar h1{ font-size:19px; font-weight:700; letter-spacing:-0.01em; }
+  .topbar .subtitle{ font-size:12.5px; color:var(--text-2); margin-top:2px; }
+  .clock-chip{
+    font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--text-2);
+    background:var(--bg); border:1px solid var(--border); border-radius:20px; padding:6px 14px;
+  }
+
+  .content{ padding:26px 32px 60px; }
+
+  .card{
+    background:var(--card); border:1px solid var(--border); border-radius:14px; padding:20px;
+    box-shadow:0 1px 2px rgba(16,24,40,0.04);
+  }
+
+  .top-grid{ display:grid; grid-template-columns: 240px repeat(3,1fr); gap:16px; margin-bottom:18px; }
+
+  .risk-card{ display:flex; flex-direction:column; align-items:center; text-align:center; }
+  .risk-card .label{ font-size:11.5px; color:var(--text-2); font-weight:600; text-transform:uppercase; letter-spacing:0.04em; align-self:flex-start; margin-bottom:10px; }
+  .ring{
+    width:120px; height:120px; border-radius:50%;
+    background:conic-gradient(var(--orange) 0% 62%, var(--border) 62% 100%);
+    display:flex; align-items:center; justify-content:center; position:relative;
+  }
+  .ring::before{ content:""; position:absolute; width:92px; height:92px; border-radius:50%; background:var(--card); }
+  .ring-value{ position:relative; font-size:26px; font-weight:800; }
+  .ring-value span{ display:block; font-size:10px; font-weight:500; color:var(--text-3); }
+  .risk-pill{
+    margin-top:12px; font-size:11.5px; font-weight:700; padding:4px 12px; border-radius:20px;
+    background:var(--orange-soft); color:var(--orange);
+  }
+
+  .stat-card .icon-box{ width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; margin-bottom:14px; }
+  .stat-card .icon-box svg{ width:17px; height:17px; }
+  .stat-card .value{ font-size:26px; font-weight:800; letter-spacing:-0.01em; }
+  .stat-card .label{ font-size:12.5px; color:var(--text-2); margin-top:2px; }
+  .stat-card .trend{ font-size:11px; font-weight:600; margin-top:10px; }
+  .trend.up{ color:var(--red); } .trend.down{ color:var(--green); } .trend.flat{ color:var(--text-3); }
+
+  .lower-grid{ display:grid; grid-template-columns:1.6fr 1fr; gap:16px; margin-bottom:16px; }
+
+  .card-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .card-head h2{ font-size:15px; font-weight:700; }
+  .card-head .sub{ font-size:11.5px; color:var(--text-3); }
+
+  .pill-tabs{ display:flex; gap:6px; background:var(--bg); padding:4px; border-radius:10px; width:fit-content; margin-bottom:16px; }
+  .pill-tab{
+    font-size:12.5px; font-weight:600; padding:7px 14px; border-radius:7px; border:none; cursor:pointer;
+    background:transparent; color:var(--text-2); font-family:'Inter',sans-serif;
+  }
+  .pill-tab.active{ background:var(--card); color:var(--orange); box-shadow:0 1px 2px rgba(16,24,40,0.08); }
+
+  .upload-zone{
+    border:1.5px dashed var(--border); border-radius:12px; padding:30px 16px; text-align:center; cursor:pointer;
+    background:var(--bg);
+  }
+  .upload-zone:hover{ border-color:var(--orange); }
+  .upload-zone .up-icon{
+    width:38px; height:38px; border-radius:10px; background:var(--orange-soft); color:var(--orange);
+    display:flex; align-items:center; justify-content:center; margin:0 auto 10px;
+  }
+  .upload-zone .up-icon svg{ width:18px; height:18px; }
+  .upload-zone p{ font-size:13px; font-weight:600; color:var(--text); }
+  .upload-zone .hint{ font-size:11.5px; color:var(--text-3); margin-top:4px; }
+  input[type=file]{ display:none; }
+
+  .result-frame{
+    position:relative; width:100%; aspect-ratio:16/10; border-radius:12px; overflow:hidden;
+    background:#EEF0F3; border:1px solid var(--border); margin-top:14px; display:none;
+  }
+  .result-frame.show{ display:block; }
+  .result-frame img, .result-frame svg, .result-frame video{ width:100%; height:100%; display:block; }
+  .video-results{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:14px; }
+  .video-results .result-frame{ margin-top:0; }
+  .frame-label{ font-size:11px; font-weight:600; color:var(--text-2); margin-bottom:6px; }
+  .feed-tags{ display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+  .tag{
+    font-size:11.5px; font-weight:600; padding:5px 11px; border-radius:20px; display:flex; align-items:center; gap:6px;
+  }
+  .tag.red{ background:var(--red-soft); color:var(--red); }
+  .tag.orange{ background:var(--orange-soft); color:var(--orange); }
+  .tag.green{ background:var(--green-soft); color:var(--green); }
+  .tag.gray{ background:var(--bg); color:var(--text-2); }
+  .analyzing{ font-size:12.5px; font-weight:600; color:var(--orange); margin-top:10px; display:none; }
+
+  .violation-list{ display:flex; flex-direction:column; gap:8px; max-height:400px; overflow-y:auto; }
+  .violation-item{
+    display:flex; gap:12px; padding:11px; border-radius:10px; background:var(--bg); align-items:flex-start;
+  }
+  .v-dot{ width:8px; height:8px; border-radius:50%; margin-top:5px; flex-shrink:0; }
+  .v-title{ font-size:12.5px; font-weight:600; }
+  .v-meta{ font-size:11px; color:var(--text-3); margin-top:2px; }
+  .v-time{ font-size:10.5px; color:var(--text-3); margin-left:auto; white-space:nowrap; }
+
+  .bottom-grid{ display:grid; grid-template-columns:1.3fr 1fr; gap:16px; }
+  .bar-chart{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:18px;
+  height:180px;
+  margin-top:12px;
+  padding:10px 10px 0;
+}
+
+.bar-col{
+  flex:1;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-end;
+  gap:6px;
+}
+
+.bar-area{
+  width:100%;
+  height:140px;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  align-items:center;
+}
+
+.bar{
+  width:70%;
+  min-height:6px;
+  border-radius:6px 6px 0 0;
+}
+
+.bar-value{
+  font-size:10px;
+  font-weight:600;
+  color:var(--text-2);
+  margin-bottom:4px;
+}
+
+.no-data{
+  font-size:10px;
+  color:var(--text-3);
+  margin-bottom:4px;
+}
+
+  table{ width:100%; border-collapse:collapse; margin-top:6px; }
+  th{ text-align:left; font-size:10.5px; color:var(--text-3); font-weight:600; text-transform:uppercase; padding:7px 8px; border-bottom:1px solid var(--border); }
+  td{ font-size:12.5px; padding:10px 8px; border-bottom:1px solid var(--border); }
+  .zone-status{ display:inline-flex; align-items:center; gap:6px; font-size:11.5px; font-weight:600; }
+  .zone-dot{ width:7px; height:7px; border-radius:50%; }
+
+  ::-webkit-scrollbar{ width:6px; }
+  ::-webkit-scrollbar-thumb{ background:var(--border); border-radius:3px; }
+</style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">SS</div>
+      <div class="brand-name">SentinelSite</div>
+    </div>
+
+    <div class="nav-group-label">Monitor</div>
+    <a href="/" class="nav-link active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+      Dashboard
+    </a>
+    <a href="#" class="nav-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+      Upload &amp; Analyze
+    </a>
+    <a href="/violations" class="nav-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l9 16H3z"/><path d="M12 10v4"/><circle cx="12" cy="17" r="0.5" fill="currentColor"/></svg>
+      Violations
+    </a>
+
+    <div class="nav-group-label">Records</div>
+    <a href="/db-view" class="nav-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>
+      Database
+    </a>
+    <a href="/reports" class="nav-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h6M9 16h6M9 8h3"/></svg>
+      Reports
+    </a>
+
+    <div id="adminNavSection" style="display:none;">
+      <div class="nav-group-label">Admin</div>
+      <a href="/admin" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/><path d="M9 12l2 2 4-4"/></svg>
+        Admin console
+      </a>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="user-row">
+        <div class="user-avatar" id="avatarInitials">--</div>
+        <div>
+          <div class="user-name" id="currentUserLabel">—</div>
+          <div class="user-role" id="currentUserRole">Supervisor</div>
+        </div>
+      </div>
+      <a href="/logout" class="logout-btn">Log out</a>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <h1>Site Overview</h1>
+        <div class="subtitle">Sector 4 — Residential Tower B, Kakkanad</div>
+      </div>
+      <div class="clock-chip mono" id="clock">--:--:--</div>
+    </div>
+
+    <div class="content">
+
+      <div class="top-grid">
+        <div class="card risk-card">
+          <div class="label">Site risk (24h)</div>
+          <div class="ring" id="riskRing"><div class="ring-value" id="riskRingValue">--<span>/ 100</span></div></div>
+          <div class="risk-pill" id="riskPill">LOADING…</div>
+        </div>
+
+        <div class="card stat-card">
+          <div class="icon-box" style="background:var(--green-soft); color:var(--green);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>
+          </div>
+          <div class="value" id="ppeComplianceValue">--%</div>
+          <div class="label">PPE compliance</div>
+          <div class="trend flat" id="ppeComplianceTrend">Last 24 hours</div>
+        </div>
+
+        <div class="card stat-card">
+          <div class="icon-box" style="background:var(--red-soft); color:var(--red);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 16H3z"/><path d="M12 10v4"/><circle cx="12" cy="17" r="0.6" fill="currentColor"/></svg>
+          </div>
+          <div class="value" id="activeViolationsValue">0</div>
+          <div class="label">Active violations</div>
+          <div class="trend flat" id="activeViolationsTrend">Last 24 hours</div>
+        </div>
+
+        <div class="card stat-card">
+          <div class="icon-box" style="background:var(--orange-soft); color:var(--orange);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a5 5 0 0 1 5 5c0 3-2 4-2 7h-6c0-3-2-4-2-7a5 5 0 0 1 5-5z"/><path d="M10 20h4"/></svg>
+          </div>
+          <div class="value" id="fallAlertValue">0</div>
+          <div class="label">Fall alerts today</div>
+          <div class="trend flat" id="fallAlertTrend">No falls detected yet today</div>
+        </div>
+      </div>
+
+      <div class="lower-grid">
+        <div class="card">
+          <div class="card-head">
+            <h2>Upload &amp; analyze</h2>
+            <span class="sub">Photo → PPE/zone/machinery · Video → fall check</span>
+          </div>
+
+          <div class="pill-tabs">
+            <button class="pill-tab active" id="tabPhotoBtn" onclick="switchTab('photo')">Photo upload</button>
+            <button class="pill-tab" id="tabVideoBtn" onclick="switchTab('video')">Video upload</button>
+          </div>
+
+          <div id="photoPane">
+            <label class="upload-zone" for="photoInput">
+              <div class="up-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+              </div>
+              <p>Drop a site photo here, or click to browse</p>
+              <div class="hint">JPG / PNG · checks helmets, vests, zones, machinery distance</div>
+            </label>
+            <input type="file" id="photoInput" accept="image/*" onchange="analyzePhoto()">
+            <div class="analyzing" id="photoAnalyzing">Running YOLOv8 detection on the uploaded image…</div>
+            <div class="video-results" id="photoResults" style="display:none;">
+
+  <div>
+    <div class="frame-label">Uploaded image</div>
+    <div class="result-frame show">
+      <img id="photoPreviewImg" style="object-fit:cover;">
+    </div>
+  </div>
+
+  <div>
+    <div class="frame-label">Detected image</div>
+    <div class="result-frame show">
+      <img id="photoResultImg" style="object-fit:contain;">
+    </div>
+  </div>
+
+</div>
+            <div class="feed-tags" id="photoTags" style="display:none;">
+              <div class="tag green">PPE compliant — 1</div>
+              <div class="tag red">Helmet missing — 1</div>
+            </div>
+          </div>
+
+          <div id="videoPane" style="display:none;">
+            <label class="upload-zone" for="videoInput">
+              <div class="up-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="M16 10l6-3v10l-6-3z"/></svg>
+              </div>
+              <p>Drop a short site video here (10–30s)</p>
+              <div class="hint">MP4 / MOV · checks for a sudden posture change (fall)</div>
+            </label>
+            <input type="file" id="videoInput" accept="video/*" onchange="analyzeVideo()">
+            <div class="analyzing" id="videoAnalyzing">Extracting frames and checking posture across time…</div>
+
+            <div class="video-results" id="videoResults" style="display:none;">
+              <div>
+                <div class="frame-label">Uploaded clip</div>
+                <div class="result-frame show">
+                  <video id="videoPlayer" controls autoplay muted loop playsinline style="object-fit:cover;"></video>
+                </div>
+              </div>
+              <div id="detectedFrameWrap" style="display:none;">
+                <div class="frame-label">Detected frames</div>
+                <div id="detectedFramesList" style="display:flex; flex-direction:column; gap:12px; max-height:340px; overflow-y:auto;"></div>
+              </div>
+            </div>
+
+            <div class="feed-tags" id="videoTags" style="display:none;"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h2>Recent violations</h2>
+            <span class="sub">Last 2 hours</span>
+          </div>
+          <div class="violation-list" id="violationList">
+            <div style="font-size:12.5px; color:var(--text-3); padding:12px;">Loading…</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-grid">
+        <div class="card">
+  <div class="card-head">
+    <h2>Weekly compliance score</h2>
+    <span class="sub">Mon – Sun</span>
+  </div>
+
+  <div class="bar-chart" id="weeklyComplianceChart"></div>
+</div>
+        
+      </div>
+
+    </div>
+  </div>
+
+<script>
+  function tick(){ document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-GB'); }
+  tick(); setInterval(tick, 1000);
+
+  async function loadCurrentUser(){
+    try{
+      const res = await fetch('/api/current-user');
+      if(!res.ok) throw new Error('no backend');
+      const data = await res.json();
+      const username = data.username || 'Guest';
+      document.getElementById('currentUserLabel').textContent = username;
+      document.getElementById('avatarInitials').textContent = username.slice(0, 2).toUpperCase();
+      if(data.role === 'admin'){
+        document.getElementById('adminNavSection').style.display = 'block';
+        document.getElementById('currentUserRole').textContent = 'Administrator';
+      }
+    }catch(e){ /* no backend running yet */ }
+  }
+  loadCurrentUser();
+
+  function switchTab(tab){
+    document.getElementById('photoPane').style.display = tab === 'photo' ? 'block' : 'none';
+    document.getElementById('videoPane').style.display = tab === 'video' ? 'block' : 'none';
+    document.getElementById('tabPhotoBtn').classList.toggle('active', tab === 'photo');
+    document.getElementById('tabVideoBtn').classList.toggle('active', tab === 'video');
+  }
+
+  async function analyzePhoto(){
+    const file = document.getElementById('photoInput').files[0];
+    if(!file) return;
+    document.getElementById('photoAnalyzing').style.display = 'block';
+document.getElementById('photoResults').style.display = 'grid';
+document.getElementById('photoTags').style.display = 'none';
+
+document.getElementById('photoPreviewImg').src = URL.createObjectURL(file);
+
+const formData = new FormData();
+formData.append('image', file);
+    let data = null;
+    try{
+      const res = await fetch('/api/analyze', { method:'POST', body:formData });
+      if(!res.ok) throw new Error('no backend');
+      data = await res.json();
+    }catch(e){}
+
+    document.getElementById('photoAnalyzing').style.display = 'none';
+    
+
+    if(data && data.annotated_image){
+      document.getElementById('photoResultImg').src = 'data:image/jpeg;base64,' + data.annotated_image;
+      document.getElementById('photoResultImg').style.display = 'block';
+      
+
+      const tagsDiv = document.getElementById('photoTags');
+      tagsDiv.innerHTML = '';
+      if(data.violations.length === 0){
+        tagsDiv.innerHTML = '<div class="tag green">No violations detected</div>';
+      } else {
+        data.violations.forEach(v => {
+          const cls = v.severity === 'high' ? 'red' : v.severity === 'medium' ? 'orange' : 'gray';
+          tagsDiv.innerHTML += `<div class="tag ${cls}">${v.type}</div>`;
+        });
+      }
+      tagsDiv.innerHTML += `<div class="tag gray">Risk score: ${data.risk.score}/100 (${data.risk.level})</div>`;
+      tagsDiv.style.display = 'flex';
+    } else {
+      document.getElementById('photoResultImg').style.display = 'none';
+      
+      document.getElementById('photoTags').style.display = 'flex';
+    }
+
+    loadRecentViolations();
+    loadFallAlerts();
+    loadSiteRisk();
+    loadPpeCompliance();
+    loadWeeklyCompliance();
+  }
+
+  let lastVideoUrl = null;
+
+  async function analyzeVideo(){
+    const file = document.getElementById('videoInput').files[0];
+    if(!file) return;
+
+    // play the uploaded clip straight away, no backend needed
+    const player = document.getElementById('videoPlayer');
+    if(lastVideoUrl) URL.revokeObjectURL(lastVideoUrl);
+    lastVideoUrl = URL.createObjectURL(file);
+    player.src = lastVideoUrl;
+
+    document.getElementById('videoResults').style.display = 'grid';
+    document.getElementById('detectedFrameWrap').style.display = 'none';
+    document.getElementById('videoAnalyzing').style.display = 'block';
+    document.getElementById('videoTags').style.display = 'none';
+
+    const formData = new FormData();
+    formData.append('video', file);
+    let data = null, videoError = null;
+    try{
+      const res = await fetch('/api/analyze-video', { method:'POST', body:formData });
+      if(!res.ok) throw new Error('Video analysis failed on the server (' + res.status + '). Check the terminal running app.py.');
+      data = await res.json();
+    }catch(e){ videoError = e.message || 'Could not reach the server. Is app.py running?'; }
+    document.getElementById('videoInput').value = '';   // allow uploading the same file again
+
+    document.getElementById('videoAnalyzing').style.display = 'none';
+    const tagsDiv = document.getElementById('videoTags');
+    if(videoError){ tagsDiv.innerHTML = `<div class="tag red">${videoError}</div>`; }
+
+    if(data){
+      const images = data.fall_frame_images || (data.fall_frame_image ? [data.fall_frame_image] : []);
+      const preview = data.preview_frame_image;
+      const events = data.fall_events || (data.fall_event ? [data.fall_event] : []);
+      if(preview && !data.fall_detected){
+        document.getElementById('detectedFramesList').innerHTML = `
+          <div class="result-frame show">
+            <img src="data:image/jpeg;base64,${preview}" style="object-fit:contain;">
+          </div>
+          <div class="frame-label" style="margin-top:6px;">
+            Processed frame — No fall detected
+          </div>
+        `;
+
+         document.getElementById('detectedFrameWrap').style.display = 'block';
+}
+
+      if(data.fall_detected && images.length){
+        const listDiv = document.getElementById('detectedFramesList');
+        listDiv.innerHTML = images.map((img, i) => {
+          const ev = events[i];
+          const caption = ev ? `${ev.label ? ev.label + ' · ' : ''}Frame ${ev.frame} · ~${ev.timestamp_sec}s` : `Fall ${i + 1}`;
+          return `
+            <div>
+              <div class="result-frame show">
+                <img src="data:image/jpeg;base64,${img}" style="object-fit:contain; background:#000;">
+              </div>
+              <div class="frame-label" style="margin-top:6px;">${caption}</div>
+            </div>`;
+        }).join('');
+        document.getElementById('detectedFrameWrap').style.display = 'block';
+      }
+
+      const skip = data.frame_skip || 3;
+      const count = data.fall_count != null ? data.fall_count : events.length;
+      const kinds = (data.falls || []).map(f => f.kind).filter(Boolean);
+      tagsDiv.innerHTML = data.fall_detected
+        ? `<div class="tag red">${count} fall${count === 1 ? '' : 's'} detected${kinds.length ? ' — ' + [...new Set(kinds)].join(', ') : ''}</div>`
+        : `<div class="tag green">No fall detected</div>`;
+      if(data.fall_detected && images.length) tagsDiv.innerHTML += `<div class="tag gray">${images.length} frames showing the fall</div>`;
+      tagsDiv.innerHTML += `<div class="tag gray">${data.frames_analyzed} frames checked (~${Math.round(data.fps / skip)} per second)</div>`;
+    }
+    tagsDiv.style.display = 'flex';
+
+    loadRecentViolations();
+    loadFallAlerts();
+    loadSiteRisk();
+    loadWeeklyCompliance();
+  }
+
+async function loadRecentViolations(){
+    try{
+      const res = await fetch('/api/violations?limit=5&within_hours=2');
+      if(!res.ok) throw new Error();
+      const violations = (await res.json()).reverse();
+      const listDiv = document.getElementById('violationList');
+
+      if(violations.length === 0){
+        listDiv.innerHTML = '<div style="font-size:12.5px; color:var(--text-3); padding:12px;">No violations in the last 2 hours.</div>';
+        return;
+      }
+
+      const dotColor = { high: 'var(--red)', medium: 'var(--orange)', low: 'var(--yellow)' };
+      listDiv.innerHTML = violations.map(v => `
+        <div class="violation-item">
+          <div class="v-dot" style="background:${dotColor[v.severity] || 'var(--text-3)'};"></div>
+          <div>
+            <div class="v-title">${v.type}</div>
+            <div class="v-meta">${v.source} upload</div>
+          </div>
+          <div class="v-time mono">${new Date(v.timestamp).toLocaleTimeString('en-GB')}</div>
+        </div>
+      `).join('');
+    }catch(e){
+      document.getElementById('violationList').innerHTML = '<div style="font-size:12.5px; color:var(--text-3); padding:12px;">Could not load violations.</div>';
+    }
+  }
+  loadRecentViolations();
+
+  async function loadFallAlerts(){
+    try{
+      const res = await fetch('/api/fall-alerts-today');
+      if(!res.ok) throw new Error();
+      const data = await res.json();
+      document.getElementById('fallAlertValue').textContent = data.count;
+      document.getElementById('fallAlertTrend').textContent = data.latest
+        ? `${new Date(data.latest.timestamp).toLocaleTimeString('en-GB')} · ${data.latest.source} upload`
+        : 'No falls detected yet today';
+    }catch(e){}
+  }
+  loadFallAlerts();
+
+async function loadSiteRisk(){
+    try{
+      const res = await fetch('/api/site-risk');
+      if(!res.ok) throw new Error();
+      const data = await res.json();
+
+      document.getElementById('riskRingValue').innerHTML = data.score + '<span>/ 100</span>';
+      const color = data.level === 'low' ? 'var(--green)' : data.level === 'medium' ? 'var(--orange)' : 'var(--red)';
+      document.getElementById('riskRing').style.background = `conic-gradient(${color} 0% ${data.score}%, var(--border) ${data.score}% 100%)`;
+
+      const pill = document.getElementById('riskPill');
+      pill.textContent = data.level.toUpperCase() + ' RISK';
+      pill.style.background = data.level === 'low' ? 'var(--green-soft)' : data.level === 'medium' ? 'var(--orange-soft)' : 'var(--red-soft)';
+      pill.style.color = color;
+
+      document.getElementById('activeViolationsValue').textContent = data.active_violations;
+    }catch(e){}
+  }
+  loadSiteRisk();
+
+  async function loadPpeCompliance(){
+    try{
+      const res = await fetch('/api/ppe-compliance');
+      if(!res.ok) throw new Error();
+      const data = await res.json();
+      if(data.compliance === null){
+        document.getElementById('ppeComplianceValue').textContent = '--%';
+        document.getElementById('ppeComplianceTrend').textContent = 'No photos analyzed yet today';
+      } else {
+        document.getElementById('ppeComplianceValue').textContent = data.compliance + '%';
+        document.getElementById('ppeComplianceTrend').textContent = `Based on ${data.total_people} people detected`;
+      }
+    }catch(e){}
+  }
+  loadPpeCompliance();
+  async function loadWeeklyCompliance(){
+  try{
+    const res = await fetch('/api/weekly-compliance');
+    if(!res.ok) throw new Error();
+
+    const data = await res.json();
+    const chart = document.getElementById('weeklyComplianceChart');
+
+    chart.innerHTML = data.map(d => {
+
+      const value = d.compliance;
+
+      if(value === null){
+        return `
+          <div class="bar-col">
+            <div class="bar-area">
+              <div class="no-data">No data</div>
+            </div>
+            <div class="bar-day">${d.day}</div>
+          </div>
+        `;
+      }
+
+      let color = 'var(--green)';
+
+      if(value < 60){
+        color = 'var(--red)';
+      }else if(value < 80){
+        color = 'var(--orange)';
+      }
+
+      return `
+        <div class="bar-col">
+          <div class="bar-area">
+            <div class="bar-value">${value}%</div>
+            <div class="bar"
+                 style="height:${value}%; background:${color};">
+            </div>
+          </div>
+          <div class="bar-day">${d.day}</div>
+        </div>
+      `;
+    }).join('');
+
+  }catch(e){
+    console.error('Weekly compliance error:', e);
+  }
+}
+loadWeeklyCompliance();
+
+</script>
+</body>
+</html>

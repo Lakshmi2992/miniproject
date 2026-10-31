@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SentinelSite — Violations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F1F3F6; --card:#FFFFFF; --border:#E4E7EC; --navy:#161B26; --navy-2:#20263A;
+    --orange:#FF6A1A; --orange-soft:#FFF1E8; --yellow:#FFC107;
+    --red:#E5484D; --red-soft:#FDECEC; --green:#1FAE6A; --green-soft:#E7F8F0;
+    --text:#161B26; --text-2:#5B6272; --text-3:#9AA1AF;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; display:flex; min-height:100vh; }
+  .mono{ font-family:'JetBrains Mono',monospace; }
+
+  .sidebar{ width:220px; background:var(--navy); color:#fff; flex-shrink:0; display:flex; flex-direction:column; padding:22px 16px; }
+  .brand{ display:flex; align-items:center; gap:10px; margin-bottom:30px; padding:0 6px; }
+  .brand-mark{ width:32px; height:32px; border-radius:8px; background:var(--orange); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; }
+  .brand-name{ font-weight:700; font-size:15px; letter-spacing:-0.01em; }
+  .nav-group-label{ font-size:10.5px; color:#6B7280; text-transform:uppercase; letter-spacing:0.06em; margin:14px 8px 8px; }
+  .nav-link{ display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:8px; color:#B7BCC7; text-decoration:none; font-size:13.5px; font-weight:500; margin-bottom:2px; }
+  .nav-link svg{ width:16px; height:16px; flex-shrink:0; }
+  .nav-link.active{ background:var(--navy-2); color:#fff; }
+  .nav-link:hover{ color:#fff; }
+  .sidebar-footer{ margin-top:auto; padding:12px 10px; border-top:1px solid #2A3145; }
+  .user-row{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .user-avatar{ width:32px; height:32px; border-radius:50%; background:var(--orange); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px; color:#fff; flex-shrink:0; }
+  .user-name{ font-size:12.5px; font-weight:600; color:#fff; }
+  .user-role{ font-size:10.5px; color:#8891A0; }
+  .logout-btn{ display:block; text-align:center; font-size:12px; color:#B7BCC7; text-decoration:none; border:1px solid #2A3145; border-radius:7px; padding:7px; margin-top:6px; }
+  .logout-btn:hover{ border-color:var(--orange); color:var(--orange); }
+
+  .main{ flex:1; min-width:0; }
+  .topbar{ display:flex; align-items:center; justify-content:space-between; padding:20px 32px; border-bottom:1px solid var(--border); background:var(--card); }
+  .topbar h1{ font-size:19px; font-weight:700; letter-spacing:-0.01em; }
+  .topbar .subtitle{ font-size:12.5px; color:var(--text-2); margin-top:2px; }
+  .clock-chip{ font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--text-2); background:var(--bg); border:1px solid var(--border); border-radius:20px; padding:6px 14px; }
+
+  .content{ padding:26px 32px 60px; }
+  .card{ background:var(--card); border:1px solid var(--border); border-radius:14px; padding:20px; box-shadow:0 1px 2px rgba(16,24,40,0.04); }
+
+  .card-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px; }
+  .card-head h2{ font-size:15px; font-weight:700; }
+  .card-head .sub{ font-size:11.5px; color:var(--text-3); }
+
+  .filters{ display:flex; gap:8px; flex-wrap:wrap; }
+  .filter-btn{
+    font-size:12px; font-weight:600; padding:6px 13px; border-radius:20px; border:1px solid var(--border);
+    background:var(--card); color:var(--text-2); cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .filter-btn.active{ background:var(--navy); color:#fff; border-color:var(--navy); }
+
+  table{ width:100%; border-collapse:collapse; margin-top:8px; }
+  th{ text-align:left; font-size:10.5px; color:var(--text-3); font-weight:600; text-transform:uppercase; padding:10px 10px; border-bottom:1px solid var(--border); }
+  td{ font-size:12.5px; padding:12px 10px; border-bottom:1px solid var(--border); }
+  tr:hover td{ background:var(--bg); }
+
+  .sev-badge{ font-size:10.5px; font-weight:700; padding:3px 10px; border-radius:20px; text-transform:uppercase; }
+  .sev-badge.high{ background:var(--red-soft); color:var(--red); }
+  .sev-badge.medium{ background:var(--orange-soft); color:var(--orange); }
+  .sev-badge.low{ background:#FFF8E1; color:#B98900; }
+
+  .src-badge{ font-size:11px; font-weight:600; color:var(--text-2); }
+  .empty-row td{ text-align:center; color:var(--text-3); padding:30px; }
+</style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <div class="brand"><div class="brand-mark">SS</div><div class="brand-name">SentinelSite</div></div>
+
+    <div class="nav-group-label">Monitor</div>
+    <a href="/" class="nav-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+      Dashboard
+    </a>
+    <a href="/" class="nav-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+      Upload &amp; Analyze
+    </a>
+    <a href="/violations" class="nav-link active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l9 16H3z"/><path d="M12 10v4"/><circle cx="12" cy="17" r="0.5" fill="currentColor"/></svg>
+      Violations
+    </a>
+
+    <div class="nav-group-label">Records</div>
+    <a href="/db-view" class="nav-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>
+      Database
+    </a>
+    <a href="/reports" class="nav-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h6M9 16h6M9 8h3"/></svg>
+      Reports
+    </a>
+
+    <div class="sidebar-footer">
+      <div class="user-row">
+        <div class="user-avatar" id="avatarInitials">--</div>
+        <div><div class="user-name" id="currentUserLabel">—</div><div class="user-role">Supervisor</div></div>
+      </div>
+      <a href="/logout" class="logout-btn">Log out</a>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <h1>Violations</h1>
+        <div class="subtitle">Every violation logged from photo and video uploads</div>
+      </div>
+      <div class="clock-chip mono" id="clock">--:--:--</div>
+    </div>
+
+    <div class="content">
+      <div class="card">
+        <div class="card-head">
+          <h2>All violations</h2>
+          <div class="filters">
+            <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">All</button>
+            <button class="filter-btn" data-filter="high" onclick="setFilter('high')">High</button>
+            <button class="filter-btn" data-filter="medium" onclick="setFilter('medium')">Medium</button>
+            <button class="filter-btn" data-filter="low" onclick="setFilter('low')">Low</button>
+            <button class="filter-btn" data-filter="photo" onclick="setFilter('photo')">Photo only</button>
+            <button class="filter-btn" data-filter="video" onclick="setFilter('video')">Video only</button>
+          </div>
+        </div>
+        <table>
+          <tr><th>Violation</th><th>Severity</th><th>Source</th><th>Logged at</th></tr>
+          <tbody id="violationRows"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+<script>
+  function tick(){ document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-GB'); }
+  tick(); setInterval(tick, 1000);
+
+  async function loadCurrentUser(){
+    try{
+      const res = await fetch('/api/current-user');
+      if(!res.ok) throw new Error();
+      const data = await res.json();
+      const username = data.username || 'Guest';
+      document.getElementById('currentUserLabel').textContent = username;
+      document.getElementById('avatarInitials').textContent = username.slice(0, 2).toUpperCase();
+    }catch(e){}
+  }
+  loadCurrentUser();
+
+  let allViolations = [];
+  let currentFilter = 'all';
+
+  function renderRows(){
+    const tbody = document.getElementById('violationRows');
+    let filtered = allViolations;
+    if(['high','medium','low'].includes(currentFilter)){
+      filtered = allViolations.filter(v => v.severity === currentFilter);
+    } else if(['photo','video'].includes(currentFilter)){
+      filtered = allViolations.filter(v => v.source === currentFilter);
+    }
+
+    if(filtered.length === 0){
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="4">No violations match this filter yet. Upload a photo or video from the dashboard to generate some.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(v => `
+      <tr>
+        <td>${v.type}</td>
+        <td><span class="sev-badge ${v.severity}">${v.severity}</span></td>
+        <td><span class="src-badge">${v.source}</span></td>
+        <td class="mono">${new Date(v.timestamp).toLocaleString()}</td>
+      </tr>
+    `).join('');
+  }
+
+  function setFilter(filter){
+    currentFilter = filter;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === filter));
+    renderRows();
+  }
+
+  async function loadViolations(){
+    try{
+      const res = await fetch('/api/violations?limit=200');
+      if(!res.ok) throw new Error();
+      allViolations = (await res.json()).reverse();
+      renderRows();
+    }catch(e){
+      document.getElementById('violationRows').innerHTML = '<tr class="empty-row"><td colspan="4">Could not reach the backend. Make sure app.py is running.</td></tr>';
+    }
+  }
+  loadViolations();
+</script>
+</body>
+</html>

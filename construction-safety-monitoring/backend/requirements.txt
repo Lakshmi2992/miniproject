@@ -1,0 +1,6 @@
+flask==3.0.3
+werkzeug==3.0.4
+ultralytics==8.2.103
+opencv-python==4.10.0.84
+scikit-learn==1.5.2
+mysql-connector-python==9.0.0

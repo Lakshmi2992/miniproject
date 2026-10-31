@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SentinelSite — Reports</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F1F3F6; --card:#FFFFFF; --border:#E4E7EC; --navy:#161B26; --navy-2:#20263A;
+    --orange:#FF6A1A; --orange-soft:#FFF1E8; --yellow:#FFC107;
+    --red:#E5484D; --red-soft:#FDECEC; --green:#1FAE6A; --green-soft:#E7F8F0;
+    --text:#161B26; --text-2:#5B6272; --text-3:#9AA1AF;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; display:flex; min-height:100vh; }
+  .mono{ font-family:'JetBrains Mono',monospace; }
+
+  .sidebar{ width:220px; background:var(--navy); color:#fff; flex-shrink:0; display:flex; flex-direction:column; padding:22px 16px; }
+  .brand{ display:flex; align-items:center; gap:10px; margin-bottom:30px; padding:0 6px; }
+  .brand-mark{ width:32px; height:32px; border-radius:8px; background:var(--orange); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; }
+  .brand-name{ font-weight:700; font-size:15px; letter-spacing:-0.01em; }
+  .nav-group-label{ font-size:10.5px; color:#6B7280; text-transform:uppercase; letter-spacing:0.06em; margin:14px 8px 8px; }
+  .nav-link{ display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:8px; color:#B7BCC7; text-decoration:none; font-size:13.5px; font-weight:500; margin-bottom:2px; }
+  .nav-link svg{ width:16px; height:16px; flex-shrink:0; }
+  .nav-link.active{ background:var(--navy-2); color:#fff; }
+  .nav-link:hover{ color:#fff; }
+  .sidebar-footer{ margin-top:auto; padding:12px 10px; border-top:1px solid #2A3145; }
+  .user-row{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .user-avatar{ width:32px; height:32px; border-radius:50%; background:var(--orange); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px; color:#fff; flex-shrink:0; }
+  .user-name{ font-size:12.5px; font-weight:600; color:#fff; }
+  .user-role{ font-size:10.5px; color:#8891A0; }
+  .logout-btn{ display:block; text-align:center; font-size:12px; color:#B7BCC7; text-decoration:none; border:1px solid #2A3145; border-radius:7px; padding:7px; margin-top:6px; }
+  .logout-btn:hover{ border-color:var(--orange); color:var(--orange); }
+
+  .main{ flex:1; min-width:0; }
+  .topbar{ display:flex; align-items:center; justify-content:space-between; padding:20px 32px; border-bottom:1px solid var(--border); background:var(--card); }
+  .topbar h1{ font-size:19px; font-weight:700; letter-spacing:-0.01em; }
+  .topbar .subtitle{ font-size:12.5px; color:var(--text-2); margin-top:2px; }
+  .clock-chip{ font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--text-2); background:var(--bg); border:1px solid var(--border); border-radius:20px; padding:6px 14px; }
+
+  .content{ padding:26px 32px 60px; }
+  .card{ background:var(--card); border:1px solid var(--border); border-radius:14px; padding:20px; box-shadow:0 1px 2px rgba(16,24,40,0.04); }
+
+  .notice{
+    background:var(--orange-soft); border:1px solid #FFD9BE; color:#9A4A16; font-size:12.5px;
+    padding:12px 16px; border-radius:10px; margin-bottom:20px;
+  }
+
+  .stat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:18px; }
+  .stat-card .label{ font-size:11.5px; color:var(--text-2); font-weight:600; text-transform:uppercase; letter-spacing:0.03em; }
+  .stat-card .value{ font-size:30px; font-weight:800; margin-top:8px; }
+
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .card-head{ margin-bottom:14px; }
+  .card-head h2{ font-size:15px; font-weight:700; }
+  .card-head .sub{ font-size:11.5px; color:var(--text-3); margin-top:2px; }
+
+  .breakdown-row{ display:flex; align-items:center; gap:12px; padding:9px 0; border-bottom:1px solid var(--border); }
+  .breakdown-row:last-child{ border-bottom:none; }
+  .breakdown-label{ font-size:12.5px; flex:1; }
+  .breakdown-bar-track{ flex:2; height:8px; background:var(--bg); border-radius:4px; overflow:hidden; }
+  .breakdown-bar{ height:100%; background:var(--orange); border-radius:4px; }
+  .breakdown-count{ font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-2); width:24px; text-align:right; }
+</style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <div class="brand"><div class="brand-mark">SS</div><div class="brand-name">SentinelSite</div></div>
+
+    <div class="nav-group-label">Monitor</div>
+    <a href="/" class="nav-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+      Dashboard
+    </a>
+    <a href="/" class="nav-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+      Upload &amp; Analyze
+    </a>
+    <a href="/violations" class="nav-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l9 16H3z"/><path d="M12 10v4"/><circle cx="12" cy="17" r="0.5" fill="currentColor"/></svg>
+      Violations
+    </a>
+
+    <div class="nav-group-label">Records</div>
+    <a href="/db-view" class="nav-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>
+      Database
+    </a>
+    <a href="/reports" class="nav-link active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h6M9 16h6M9 8h3"/></svg>
+      Reports
+    </a>
+
+    <div class="sidebar-footer">
+      <div class="user-row">
+        <div class="user-avatar" id="avatarInitials">--</div>
+        <div><div class="user-name" id="currentUserLabel">—</div><div class="user-role">Supervisor</div></div>
+      </div>
+      <a href="/logout" class="logout-btn">Log out</a>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <h1>Reports</h1>
+        <div class="subtitle">Summary of all activity recorded so far</div>
+      </div>
+      <div class="clock-chip mono" id="clock">--:--:--</div>
+    </div>
+
+    <div class="content">
+      
+      <div class="stat-grid">
+        <div class="card stat-card"><div class="label">Total uploads</div><div class="value" id="totalUploads">0</div></div>
+        <div class="card stat-card"><div class="label">Photo uploads</div><div class="value" id="photoUploads">0</div></div>
+        <div class="card stat-card"><div class="label">Video uploads</div><div class="value" id="videoUploads">0</div></div>
+        <div class="card stat-card"><div class="label">Total violations</div><div class="value" id="totalViolations">0</div></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-head"><h2>Violations by severity</h2><div class="sub">All time</div></div>
+          <div id="severityBreakdown"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>Violations by type</h2><div class="sub">All time</div></div>
+          <div id="typeBreakdown"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  function tick(){ document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-GB'); }
+  tick(); setInterval(tick, 1000);
+
+  async function loadCurrentUser(){
+    try{
+      const res = await fetch('/api/current-user');
+      if(!res.ok) throw new Error();
+      const data = await res.json();
+      const username = data.username || 'Guest';
+      document.getElementById('currentUserLabel').textContent = username;
+      document.getElementById('avatarInitials').textContent = username.slice(0, 2).toUpperCase();
+    }catch(e){}
+  }
+  loadCurrentUser();
+
+  function renderBreakdown(containerId, counts, colorMap){
+    const container = document.getElementById(containerId);
+    const entries = Object.entries(counts);
+    const max = Math.max(1, ...entries.map(e => e[1]));
+    if(entries.length === 0){
+      container.innerHTML = '<div style="font-size:12.5px; color:var(--text-3);">No data yet.</div>';
+      return;
+    }
+    container.innerHTML = entries.map(([label, count]) => `
+      <div class="breakdown-row">
+        <div class="breakdown-label">${label}</div>
+        <div class="breakdown-bar-track"><div class="breakdown-bar" style="width:${(count/max)*100}%; ${colorMap && colorMap[label] ? 'background:'+colorMap[label]+';' : ''}"></div></div>
+        <div class="breakdown-count">${count}</div>
+      </div>
+    `).join('');
+  }
+
+  async function loadSummary(){
+    try{
+      const res = await fetch('/api/reports-summary');
+      if(!res.ok) throw new Error();
+      const data = await res.json();
+
+      document.getElementById('totalUploads').textContent = data.total_uploads;
+      document.getElementById('photoUploads').textContent = data.photo_uploads;
+      document.getElementById('videoUploads').textContent = data.video_uploads;
+      document.getElementById('totalViolations').textContent = data.total_violations;
+
+      renderBreakdown('severityBreakdown', data.severity_counts, {high:'#E5484D', medium:'#FF6A1A', low:'#FFC107'});
+      renderBreakdown('typeBreakdown', data.type_counts, {});
+    }catch(e){ /* backend not running yet */ }
+  }
+  loadSummary();
+</script>
+</body>
+</html>

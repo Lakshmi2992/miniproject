@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SentinelSite — Database viewer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#14171C; --panel:#1B2027; --border:#2C333F; --yellow:#F5B700;
+    --text:#EDEFF3; --text-2:#99A2AF; --text-3:#626B79;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; padding:32px; }
+  .mono{ font-family:'JetBrains Mono',monospace; }
+  h1{ font-family:'Oswald',sans-serif; text-transform:uppercase; font-size:20px; margin-bottom:4px; }
+  .sub{ font-size:13px; color:var(--text-2); margin-bottom:24px; }
+  .sub a{ color:var(--yellow); text-decoration:none; }
+  .card{ background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:20px; }
+  .card h2{ font-size:14px; margin-bottom:12px; }
+  table{ width:100%; border-collapse:collapse; }
+  th{ text-align:left; font-size:11px; color:var(--text-3); font-weight:500; padding:8px; border-bottom:1px solid var(--border); }
+  td{ font-size:12.5px; padding:9px 8px; border-bottom:1px solid var(--border); }
+  .empty{ font-size:12.5px; color:var(--text-3); padding:8px; }
+</style>
+</head>
+<body>
+  <h1>Database viewer</h1>
+  <div class="sub">Live contents of sentinelsite.db · <a href="/">Back to dashboard</a></div>
+
+  <div class="card">
+    <h2>users</h2>
+    <table id="usersTable"><tr><th>id</th><th>username</th></tr></table>
+  </div>
+
+  <div class="card">
+    <h2>violations</h2>
+    <table id="violationsTable"><tr><th>id</th><th>type</th><th>severity</th><th>source</th><th>timestamp</th></tr></table>
+  </div>
+
+  <div class="card">
+    <h2>uploads</h2>
+    <table id="uploadsTable"><tr><th>id</th><th>filename</th><th>upload_type</th><th>timestamp</th></tr></table>
+  </div>
+
+<script>
+  async function load(){
+    const res = await fetch('/api/db-view');
+    const data = await res.json();
+
+    const usersTable = document.getElementById('usersTable');
+    data.users.forEach(u => {
+      usersTable.innerHTML += `<tr><td class="mono">${u.id}</td><td>${u.username}</td></tr>`;
+    });
+
+    const vTable = document.getElementById('violationsTable');
+    if(data.violations.length === 0){ vTable.innerHTML += '<tr><td colspan="5" class="empty">No violations logged yet — upload a photo or video to generate some.</td></tr>'; }
+    data.violations.forEach(v => {
+      vTable.innerHTML += `<tr><td class="mono">${v.id}</td><td>${v.type}</td><td>${v.severity}</td><td>${v.source}</td><td class="mono">${v.timestamp}</td></tr>`;
+    });
+
+    const upTable = document.getElementById('uploadsTable');
+    if(data.uploads.length === 0){ upTable.innerHTML += '<tr><td colspan="4" class="empty">No uploads yet.</td></tr>'; }
+    data.uploads.forEach(u => {
+      upTable.innerHTML += `<tr><td class="mono">${u.id}</td><td>${u.filename}</td><td>${u.upload_type}</td><td class="mono">${u.timestamp}</td></tr>`;
+    });
+  }
+  load();
+</script>
+</body>
+</html>
